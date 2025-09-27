@@ -216,19 +216,32 @@
             font-size: 0.8rem;
         }
 
-        /* Toolkit Card Resizing & Styling */
+        /* --- Toolkit Card Resizing & Styling (Mobile Optimization) --- */
         .toolkit-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            /* FIX: Default to 1 column for smallest screens (portrait mobile) */
+            grid-template-columns: repeat(1, minmax(0, 1fr));
             gap: 1.5rem;
         }
 
+        @media (min-width: 640px) {
+
+            /* Tailwind's sm breakpoint - 2 columns for wider screens (mobile landscape, small tablets) */
+            .toolkit-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
         @media (min-width: 768px) {
+
+            /* md breakpoint */
             .toolkit-grid {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
             }
         }
 
         @media (min-width: 1024px) {
+
+            /* lg breakpoint */
             .toolkit-grid {
                 grid-template-columns: repeat(6, minmax(0, 1fr));
                 gap: 1rem;
@@ -336,7 +349,7 @@
             </div>
         </section>
 
-        <!-- --- 3. Skills & Experience Flashcards Section --- -->
+        <!-- --- 3. Skills & Experience Flashcards Section (Optimized for Mobile) --- -->
         <section id="toolkit-section"
             class="snap-section flex flex-col justify-center py-20 container mx-auto px-4 sm:px-6 lg:px-8 bg-black">
             <div class="text-center mb-6">
@@ -346,7 +359,7 @@
                     to learn more. Jack of many trades master of none 😅
                 </p>
             </div>
-            <!-- REDESIGNED GRID: Compact and fits all 6 cards -->
+            <!-- The CSS change ensures this defaults to 1 column on smallest screens. -->
             <div class="toolkit-grid grid gap-4 overflow-y-auto p-4 mx-auto w-full max-w-6xl">
 
                 <!-- Card 1: Python & ML -->
@@ -526,26 +539,26 @@
         <!-- --- 4. Dedicated LEGO Page --- -->
         <section id="lego-section" class="snap-section flex flex-col justify-center items-center py-0 w-full px-0">
             <div class="relative w-full h-full">
-                <!-- Grid Background: Using Placeholders as original images won't load -->
+                <!-- Grid Background: Paths are corrected to use relative file names -->
                 <div class="grid gap-0 w-full h-full grid-cols-3 sm:grid-cols-6 bg-black">
                     <img src="lego-1.jpg" alt="LEGO image 1"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=LEGO+1+Error';">
                     <img src="lego-2.jpg" alt="LEGO image 2"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=LEGO+2+Error';">
                     <img src="lego-3.jpg" alt="LEGO image 3"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=LEGO+3+Error';">
                     <img src="lego-4.jpg" alt="LEGO image 4"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=LEGO+4+Error';">
                     <img src="lego-5.jpg" alt="LEGO image 5"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=LEGO+5+Error';">
                     <img src="lego-6.jpg" alt="LEGO image 6"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=LEGO+6+Error';">
                 </div>
                 <div id="lego-pane-container"
                     class="creative-pane-container absolute inset-0 flex items-center justify-center p-6">
@@ -567,26 +580,26 @@
         <!-- --- 5. Dedicated Art & Anime Page --- -->
         <section id="art-section" class="snap-section flex flex-col justify-center items-center py-0 w-full px-0">
             <div class="relative w-full h-full">
-                <!-- Grid Background: Using Placeholders as original images won't load -->
+                <!-- Grid Background: Paths are corrected to use relative file names -->
                 <div class="grid gap-0 w-full h-full grid-cols-3 sm:grid-cols-6 bg-black">
                     <img src="art-1.jpg" alt="Art image 1"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=ART+1+Error';">
                     <img src="art-2.jpg" alt="Art image 2"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=ART+2+Error';">
                     <img src="art-3.jpg" alt="Art image 3"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=ART+3+Error';">
                     <img src="art-4.jpg" alt="Art image 4"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=ART+4+Error';">
                     <img src="art-5.jpg" alt="Art image 5"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=ART+5+Error';">
                     <img src="art-6.jpg" alt="Art image 6"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=ART+6+Error';">
                 </div>
                 <div id="art-pane-container"
                     class="creative-pane-container absolute inset-0 flex items-center justify-center p-6">
@@ -608,26 +621,26 @@
         <section id="photography-section"
             class="snap-section flex flex-col justify-center items-center py-0 w-full px-0">
             <div class="relative w-full h-full">
-                <!-- Grid Background: Using Placeholders as original images won't load -->
+                <!-- Grid Background: Paths are corrected to use relative file names -->
                 <div class="grid gap-0 w-full h-full grid-cols-3 sm:grid-cols-6 bg-black">
                     <img src="photo-1.jpg" alt="Photography image 1"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=PHOTO+1+Error';">
                     <img src="photo-2.jpg" alt="Photography image 2"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=PHOTO+2+Error';">
                     <img src="photo-3.jpg" alt="Photography image 3"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=PHOTO+3+Error';">
                     <img src="photo-4.jpg" alt="Photography image 4"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=PHOTO+4+Error';">
                     <img src="photo-5.jpg" alt="Photography image 5"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='hPhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=PHOTO+5+Error';">
                     <img src="photo-6.jpg" alt="Photography image 6"
                         class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
-                        onerror="this.onerror=null; this.src='PhotoError';">
+                        onerror="this.onerror=null; this.src='https://placehold.co/400x400/1e293b/94a3b8?text=PHOTO+6+Error';">
                 </div>
                 <div id="photography-pane-container"
                     class="creative-pane-container absolute inset-0 flex items-center justify-center p-6">
@@ -659,8 +672,9 @@
             <div id="mosaic-card"
                 class="w-full max-w-sm aspect-[3/4] mx-auto relative overflow-hidden rounded-2xl mosaic-card transition-all duration-300 ease-in-out cursor-pointer hover:scale-[1.03] hover:shadow-2xl">
                 <!-- Using a placeholder for the default mosaic image, since the original file won't load -->
-                <img id="mosaic-image" src="emoji-mosaic.png" alt="Kartikay Sharma Emoji Mosaic Profile"
-                    class="w-full h-full object-cover" onerror="this.onerror=null; this.src='image error';" />
+                <img id="mosaic-image" src="https://placehold.co/400x533/ff0000/ffffff?text=KARTIKAY'S+MOSAIC"
+                    alt="Kartikay Sharma Emoji Mosaic Profile" class="w-full h-full object-cover"
+                    onerror="this.onerror=null; this.src='https://placehold.co/400x533/ff0000/ffffff?text=Image+Load+Error';" />
 
                 <!-- SQUINT! Text Overlay -->
                 <div id="squint-overlay"
