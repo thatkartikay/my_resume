@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kartikay Sharma</title>
+    <!-- Load Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* --- Custom CSS Variables (Blue/Green Gradient Accent) --- */
+        :root {
+            --gradient-start: #3b82f6;
+            /* Blue */
+            --gradient-end: #10b981;
+            /* Green */
+            --card-inner: #080808;
+            --secondary-text: #a1a1aa;
+            /* Gray */
+            --glow-shadow: 0 0 10px rgba(59, 130, 246, 0.5), 0 0 20px rgba(16, 185, 129, 0.3);
+            --highlight-color: #4ade80;
+            /* Light Green Accent */
+        }
+
+        /* --- Global Background and Scroll Snapping --- */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: black;
+            color: white;
+            font-family: 'Inter', system-ui, sans-serif;
+            margin: 0;
+            overscroll-behavior-y: contain;
+        }
+
+        .snap-container {
+            height: 100vh;
+            overflow-y: scroll;
+            scroll-snap-type: y mandatory;
+        }
+
+        .snap-section {
+            height: 100vh;
+            scroll-snap-align: start;
+            width: 100%;
+        }
+
+        /* --- 3D Flashcard Styles --- */
+        .perspective {
+            perspective: 1000px;
+            isolation: isolate;
+        }
+
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 1.0s;
+        }
+
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Gradient Border Application */
+        .front-card,
+        .back-card {
+            border: 1px solid transparent;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            background-clip: padding-box;
+        }
+
+        .front-card {
+            transform: rotateY(0deg);
+            z-index: 20;
+            /* Using a simple border for now as complex gradient borders can be tricky in single-file setup */
+            border-image: linear-gradient(45deg, var(--gradient-start), var(--gradient-end)) 1;
+        }
+
+        .back-card {
+            transform: rotateY(180deg);
+            z-index: 10;
+            border-image: linear-gradient(45deg, var(--gradient-end), var(--gradient-start)) 1;
+        }
+
+        .is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        /* --- Creative Page Pane Transition --- */
+        .creative-pane-container {
+            transition: opacity 0.5s ease-in-out;
+            opacity: 0;
+        }
+
+        .creative-pane-container.is-visible {
+            opacity: 1;
+        }
+
+        /* --- Mosaic Reveal Styles & About Me Pane Glow Fix --- */
+        /* This class now applies the custom glow to both the Mosaic and About Me panes */
+        .mosaic-card {
+            box-shadow: var(--glow-shadow);
+        }
+
+        .smooth-flow-font {
+            font-family: 'Garamond', 'Times New Roman', serif;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+            transition: all 1s ease-out;
+        }
+
+        /* --- Social Links Hover Glow (Theme Colors) --- */
+        /* 1. Apply transition directly to the SVG element (which handles the color/stroke) */
+        .social-link-icon svg {
+            transition: color 0.3s, filter 0.3s;
+        }
+
+        /* 2. Specific Brand Colors on Hover (targetting the SVG inside the hovered anchor) */
+        a[href*="mailto"]:hover svg {
+            color: #FFD700;
+            /* Yellow for Email */
+            filter: drop-shadow(0 0 8px #FFD700);
+        }
+
+        a[href*="linkedin"]:hover svg {
+            color: #0A66C2;
+            /* Blue for LinkedIn */
+            filter: drop-shadow(0 0 8px #0A66C2);
+        }
+
+        a[href*="github"]:hover svg {
+            color: #9400D3;
+            /* Purple for GitHub */
+            filter: drop-shadow(0 0 8px #9400D3);
+        }
+
+        a[href*="instagram"]:hover svg {
+            color: #E1306C;
+            /* Pink/Red for Instagram */
+            filter: drop-shadow(0 0 8px #E1306C);
+        }
+
+        /* Removing the old, conflicting .social-link-icon styles */
+        .social-link-icon {
+            /* Kept here but its transition/hover styles are now applied to SVG children */
+        }
+
+        /* --- Emoji Generator Overrides (i'mOG) --- */
+        .app-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app.bg-black-override {
+            background: var(--card-inner);
+            border: 1px solid var(--secondary-text);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--glow-shadow);
+            max-width: 550px;
+            width: 100%;
+        }
+
+        .app-wrapper .zone {
+            border: 2px dashed var(--secondary-text);
+            border-radius: 14px;
+            padding: 36px 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.02);
+            cursor: pointer;
+            transition: 0.2s ease border-color, 0.2s ease background;
+        }
+
+        .app-wrapper .zone.dragover {
+            border-color: var(--gradient-end);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .app-wrapper button.bg-black-button {
+            background: #1a1a1a;
+            border: 1px solid var(--secondary-text);
+            color: white;
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+
+        .app-wrapper button.bg-black-button:hover:not(:disabled) {
+            background: #2a2a2a;
+            border-color: var(--highlight-color);
+        }
+
+        .app-wrapper button.bg-black-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .app-wrapper .progress-bar {
+            background: var(--gradient-start);
+        }
+
+        .app-wrapper kbd {
+            background: #2a2f45;
+            color: #eee;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        /* Toolkit Card Resizing & Styling */
+        .toolkit-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media (min-width: 768px) {
+            .toolkit-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .toolkit-grid {
+                grid-template-columns: repeat(6, minmax(0, 1fr));
+                gap: 1rem;
+            }
+        }
+
+        .toolkit-card {
+            height: 24rem;
+            /* Increased height for content fit */
+            min-height: 24rem;
+            border-radius: 0.5rem;
+            /* Subtle round corners */
+        }
+
+        .toolkit-card .front-content {
+            font-size: 1.5rem;
+            /* Front title font size */
+        }
+
+        .toolkit-card .back-description {
+            font-size: 0.8rem;
+            /* Reduced font size for better fit */
+            line-height: 1.4;
+            padding: 0 1rem;
+        }
+
+        /* Highlight styling for text within the description (kept class, but removed from content) */
+        .highlight {
+            color: var(--highlight-color);
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="snap-container">
+
+        <!-- --- 1. Hero Section --- -->
+        <header id="hero"
+            class="snap-section flex flex-col justify-center items-center text-center py-20 container mx-auto px-4 sm:px-6 lg:px-8 bg-black">
+            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight">
+                Hi, I'm Kartikay Sharma
+            </h1>
+            <p class="mt-4 text-lg md:text-xl text-white max-w-2xl">
+                A Data Science undergrad who translates data into decisions and caffeine into code. Currently predicting
+                my next coffee refill with 95.6% accuracy.
+            </p>
+            <div class="mt-8 flex items-center space-x-6">
+                <!-- NEW: Gmail Icon Added -->
+                <a href="mailto:krtk3005@gmail.com" target="_blank" rel="noopener noreferrer"
+                    class="text-gray-400 social-link-icon">
+                    <!-- Mail Icon (Yellow/Gold Hover) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                </a>
+                <a href="https://www.linkedin.com/in/kartikay-sharma-730a82280" target="_blank"
+                    rel="noopener noreferrer" class="text-gray-400 social-link-icon">
+                    <!-- LinkedIn Icon (Blue Hover) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                        <rect x="2" y="9" width="4" height="12"></rect>
+                        <circle cx="4" cy="4" r="2"></circle>
+                    </svg>
+                </a>
+                <a href="https://github.com/thatkartikay" target="_blank" rel="noopener noreferrer"
+                    class="text-gray-400 social-link-icon">
+                    <!-- GitHub Icon (Purple Hover) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22">
+                        </path>
+                    </svg>
+                </a>
+                <a href="https://www.instagram.com/_kartikaysharma" target="_blank" rel="noopener noreferrer"
+                    class="text-gray-400 social-link-icon">
+                    <!-- Instagram Icon (Pink Hover) -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                        <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                        <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+                    </svg>
+                </a>
+            </div>
+        </header>
+
+        <!-- --- 2. About Me Section (Frosted Glass) --- -->
+        <section id="about-me-section"
+            class="snap-section flex flex-col justify-center items-center py-20 w-full px-4 sm:px-6 lg:px-8 bg-black">
+            <!-- Added mosaic-card class to apply the custom glow shadow -->
+            <div id="about-me-pane"
+                class="p-8 max-w-2xl bg-white/5 backdrop-blur-xl rounded-2xl border border-white/20 text-center mosaic-card transition-opacity duration-1000 opacity-0">
+                <h2 class="text-4xl font-bold mb-4 text-white">A Bit About Me</h2>
+                <p class="text-white">
+                    I'm a CSE Data Science student with a solid 7.25 GPA. I'm well-versed in Python, SQL, and core CS
+                    concepts, with hands-on experience in machine learning and computer vision. I thrive on combining
+                    academic knowledge with practical application to contribute meaningfully to the tech world.
+                </p>
+            </div>
+        </section>
+
+        <!-- --- 3. Skills & Experience Flashcards Section --- -->
+        <section id="toolkit-section"
+            class="snap-section flex flex-col justify-center py-20 container mx-auto px-4 sm:px-6 lg:px-8 bg-black">
+            <div class="text-center mb-6">
+                <h2 class="text-4xl font-bold mb-3">My Toolkit & Adventures</h2>
+                <p class="text-white max-w-3xl mx-auto text-sm">
+                    A collection of skills I've mastered, experiences I've gathered, and passions I pursue. Flip a card
+                    to learn more. Jack of many trades master of none 😅
+                </p>
+            </div>
+            <!-- REDESIGNED GRID: Compact and fits all 6 cards -->
+            <div class="toolkit-grid grid gap-4 overflow-y-auto p-4 mx-auto w-full max-w-6xl">
+
+                <!-- Card 1: Python & ML -->
+                <div class="flashcard perspective w-full toolkit-card opacity-0 translate-y-10 transition-all duration-700 ease-in-out"
+                    style="transition-delay: 0s;">
+                    <div class="flashcard-inner relative w-full h-full duration-1000 transform-style-3d">
+                        <div class="front-card backface-hidden bg-black rounded-xl shadow-lg flex flex-col justify-center items-center p-4 text-center cursor-pointer"
+                            onclick="toggleCard(this)">
+                            <h3 class="font-bold text-white front-content">Python & Machine Learning</h3>
+                            <span class="mt-2 text-xs text-gray-400 group flex items-center">Click to reveal<svg
+                                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg></span>
+                        </div>
+                        <div class="back-card backface-hidden bg-black rounded-xl shadow-lg p-4 cursor-pointer overflow-hidden"
+                            onclick="toggleCard(this)">
+                            <div class="flex flex-col h-full items-center text-center justify-center">
+                                <p class="text-white back-description text-sm">
+                                    Well-versed in Python (Scikit-learn, TensorFlow, PyTorch). Passionate about
+                                    exploring machine learning and hands-on experience implementing OpenCV. Key skills:
+                                    Regression, NLP, and Computer Vision models.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Data Analysis & SQL -->
+                <div class="flashcard perspective w-full toolkit-card opacity-0 translate-y-10 transition-all duration-700 ease-in-out"
+                    style="transition-delay: 0.1s;">
+                    <div class="flashcard-inner relative w-full h-full duration-1000 transform-style-3d">
+                        <div class="front-card backface-hidden bg-black rounded-xl shadow-lg flex flex-col justify-center items-center p-4 text-center cursor-pointer"
+                            onclick="toggleCard(this)">
+                            <h3 class="font-bold text-white front-content">Data Analysis & SQL</h3>
+                            <span class="mt-2 text-xs text-gray-400 group flex items-center">Click to reveal<svg
+                                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg></span>
+                        </div>
+                        <div class="back-card backface-hidden bg-black rounded-xl shadow-lg p-4 cursor-pointer overflow-hidden"
+                            onclick="toggleCard(this)">
+                            <div class="flex flex-col h-full items-center text-center justify-center">
+                                <p class="text-white back-description text-sm">
+                                    Solid SQL knowledge used for extracting actionable insights from complex datasets.
+                                    Experience gained during my IBM Internship. Database: MySQL.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: IBM Internship -->
+                <div class="flashcard perspective w-full toolkit-card opacity-0 translate-y-10 transition-all duration-700 ease-in-out"
+                    style="transition-delay: 0.2s;">
+                    <div class="flashcard-inner relative w-full h-full duration-1000 transform-style-3d">
+                        <div class="front-card backface-hidden bg-black rounded-xl shadow-lg flex flex-col justify-center items-center p-4 text-center cursor-pointer"
+                            onclick="toggleCard(this)">
+                            <h3 class="font-bold text-white front-content">Data Analysis Intern @ IBM</h3>
+                            <span class="mt-2 text-xs text-gray-400 group flex items-center">Click to reveal<svg
+                                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg></span>
+                        </div>
+                        <div class="back-card backface-hidden bg-black rounded-xl shadow-lg p-4 cursor-pointer overflow-hidden"
+                            onclick="toggleCard(this)">
+                            <div class="flex flex-col h-full items-center text-center justify-center">
+                                <p class="text-white back-description text-sm">
+                                    Gained practical, hands-on experience working on real-life data problems and
+                                    applying concepts like regression for model training in Python. Duration: June 2024
+                                    - August 2024.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Nothing India Tester -->
+                <div class="flashcard perspective w-full toolkit-card opacity-0 translate-y-10 transition-all duration-700 ease-in-out"
+                    style="transition-delay: 0.3s;">
+                    <div class="flashcard-inner relative w-full h-full duration-1000 transform-style-3d">
+                        <div class="front-card backface-hidden bg-black rounded-xl shadow-lg flex flex-col justify-center items-center p-4 text-center cursor-pointer"
+                            onclick="toggleCard(this)">
+                            <h3 class="font-bold text-white front-content">Tester @ Nothing India</h3>
+                            <span class="mt-2 text-xs text-gray-400 group flex items-center">Click to reveal<svg
+                                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg></span>
+                        </div>
+                        <div class="back-card backface-hidden bg-black rounded-xl shadow-lg p-4 cursor-pointer overflow-hidden"
+                            onclick="toggleCard(this)">
+                            <div class="flex flex-col h-full items-center text-center justify-center">
+                                <p class="text-white back-description text-sm">
+                                    Active participation in User Trials for Nothing India. Contributed feedback for
+                                    NothingOS 3.0 and camera testing (User Acceptance Testing). Duration: December 2024
+                                    - Present.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 5: Retail Billing System Project -->
+                <div class="flashcard perspective w-full toolkit-card opacity-0 translate-y-10 transition-all duration-700 ease-in-out"
+                    style="transition-delay: 0.4s;">
+                    <div class="flashcard-inner relative w-full h-full duration-1000 transform-style-3d">
+                        <div class="front-card backface-hidden bg-black rounded-xl shadow-lg flex flex-col justify-center items-center p-4 text-center cursor-pointer"
+                            onclick="toggleCard(this)">
+                            <h3 class="font-bold text-white front-content">Retail Billing System Project</h3>
+                            <span class="mt-2 text-xs text-gray-400 group flex items-center">Click to reveal<svg
+                                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg></span>
+                        </div>
+                        <div class="back-card backface-hidden bg-black rounded-xl shadow-lg p-4 cursor-pointer overflow-hidden"
+                            onclick="toggleCard(this)">
+                            <div class="flex flex-col h-full items-center text-center justify-center">
+                                <p class="text-white back-description text-sm">
+                                    Python-based billing program generating receipts, sales summaries, and visual
+                                    reports. Secures data in MySQL; designed for simplicity and robustness. Features:
+                                    Automated Reporting and Data Visualization.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 6: Web Fundamentals & Design -->
+                <div class="flashcard perspective w-full toolkit-card opacity-0 translate-y-10 transition-all duration-700 ease-in-out"
+                    style="transition-delay: 0.5s;">
+                    <div class="flashcard-inner relative w-full h-full duration-1000 transform-style-3d">
+                        <div class="front-card backface-hidden bg-black rounded-xl shadow-lg flex flex-col justify-center items-center p-4 text-center cursor-pointer"
+                            onclick="toggleCard(this)">
+                            <h3 class="font-bold text-white front-content">Web Fundamentals & Design</h3>
+                            <span class="mt-2 text-xs text-gray-400 group flex items-center">Click to reveal<svg
+                                    xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg></span>
+                        </div>
+                        <div class="back-card backface-hidden bg-black rounded-xl shadow-lg p-4 cursor-pointer overflow-hidden"
+                            onclick="toggleCard(this)">
+                            <div class="flex flex-col h-full items-center text-center justify-center">
+                                <p class="text-white back-description text-sm">
+                                    Well-versed in HTML, CSS, and Figma for design prototyping. Solid grasp of core CS
+                                    concepts (Architecture, OS).
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- --- 4. Dedicated LEGO Page --- -->
+        <section id="lego-section" class="snap-section flex flex-col justify-center items-center py-0 w-full px-0">
+            <div class="relative w-full h-full">
+                <!-- Grid Background: Using Placeholders as original images won't load -->
+                <div class="grid gap-0 w-full h-full grid-cols-3 sm:grid-cols-6 bg-black">
+                    <img src=".lego-1.jpg" alt="LEGO image 1"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                    <img src=".lego-2.jpg" alt="LEGO image 2"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                    <img src=".lego-3.jpg" alt="LEGO image 3"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                    <img src=".lego-4.jpg" alt="LEGO image 4"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                    <img src=".lego-5.jpg" alt="LEGO image 5"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                    <img src=".lego-6.jpg" alt="LEGO image 6"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                </div>
+                <div id="lego-pane-container"
+                    class="creative-pane-container absolute inset-0 flex items-center justify-center p-6">
+                    <div
+                        class="p-6 max-w-md bg-white/5 backdrop-blur-xl rounded-xl border border-white/20 text-center shadow-lg shadow-[var(--glow-shadow)]">
+                        <div class="flex items-center justify-center mb-4">
+                            <span class="text-3xl mr-3">🧱</span>
+                            <h3 class="text-2xl font-extrabold text-white">LEGO Building</h3>
+                        </div>
+                        <p class="text-white text-md mt-2">Beyond the code, I build worlds one brick at a time. It's a
+                            passion for structured creativity, problem-solving, and meticulous attention to detail. This
+                            same focus on modular design and complex system assembly drives my approach to engineering
+                            robust data pipelines.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- --- 5. Dedicated Art & Anime Page --- -->
+        <section id="art-section" class="snap-section flex flex-col justify-center items-center py-0 w-full px-0">
+            <div class="relative w-full h-full">
+                <!-- Grid Background: Using Placeholders as original images won't load -->
+                <div class="grid gap-0 w-full h-full grid-cols-3 sm:grid-cols-6 bg-black">
+                    <img src=".art-1.jpg" alt="Art image 1"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                    <img src=".art-2.jpg" alt="Art image 2"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                    <img src=".art-3.jpg" alt="Art image 3"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                    <img src=".art-4.jpg" alt="Art image 4"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                    <img src=".art-5.jpg" alt="Art image 5"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                    <img src=".art-6.jpg" alt="Art image 6"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                </div>
+                <div id="art-pane-container"
+                    class="creative-pane-container absolute inset-0 flex items-center justify-center p-6">
+                    <div
+                        class="p-6 max-w-md bg-white/5 backdrop-blur-xl rounded-xl border border-white/20 text-center shadow-lg shadow-[var(--glow-shadow)]">
+                        <div class="flex items-center justify-center mb-4">
+                            <span class="text-3xl mr-3">🎨</span>
+                            <h3 class="text-2xl font-extrabold text-white">Art & Anime Escape</h3>
+                        </div>
+                        <p class="text-white text-md mt-2">My mental health escape: finding peace and focus through
+                            sketching, papercraft, and vibrant anime characters. This is where I go to de-stress and
+                            recharge my creative data batteries.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- --- 6. Dedicated Photography Page --- -->
+        <section id="photography-section"
+            class="snap-section flex flex-col justify-center items-center py-0 w-full px-0">
+            <div class="relative w-full h-full">
+                <!-- Grid Background: Using Placeholders as original images won't load -->
+                <div class="grid gap-0 w-full h-full grid-cols-3 sm:grid-cols-6 bg-black">
+                    <img src=".photo-1.jpg" alt="Photography image 1"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                    <img src=".photo-2.jpg" alt="Photography image 2"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                    <img src=".photo-3.jpg" alt="Photography image 3"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                    <img src=".photo-4.jpg" alt="Photography image 4"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                    <img src=".photo-5.jpg" alt="Photography image 5"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='hPhotoError';">
+                    <img src=".photo-6.jpg" alt="Photography image 6"
+                        class="w-full h-full object-cover transition-opacity duration-700 opacity-90"
+                        onerror="this.onerror=null; this.src='PhotoError';">
+                </div>
+                <div id="photography-pane-container"
+                    class="creative-pane-container absolute inset-0 flex items-center justify-center p-6">
+                    <div
+                        class="p-6 max-w-md bg-white/5 backdrop-blur-xl rounded-xl border border-white/20 text-center shadow-lg shadow-[var(--glow-shadow)]">
+                        <div class="flex items-center justify-center mb-4">
+                            <span class="text-3xl mr-3">📸</span>
+                            <h3 class="text-2xl font-extrabold text-white">Photography</h3>
+                        </div>
+                        <p class="text-white text-md mt-2">Capturing moments and perspectives through the lens.
+                            Photography teaches me to find the extraordinary in the ordinary and to appreciate the
+                            nuances of light, composition, and storytelling. **Every frame is a lesson in compositional
+                            clarity, which I apply to creating visually effective data visualizations.**</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- --- 7. Emoji Mosaic Profile Reveal Section --- -->
+        <section id="mosaic-reveal-section"
+            class="snap-section flex flex-col justify-center items-center py-20 container mx-auto px-4 sm:px-6 lg:px-8 bg-black">
+            <div class="text-center mb-12 transition-opacity duration-1000">
+                <h2 class="text-4xl font-bold mb-4">Putting it all together...</h2>
+                <p class="text-white max-w-3xl mx-auto">
+                    This is me, Kartikay, a combination of data, code, LEGO, and photography.
+                </p>
+            </div>
+
+            <div id="mosaic-card"
+                class="w-full max-w-sm aspect-[3/4] mx-auto relative overflow-hidden rounded-2xl mosaic-card transition-all duration-300 ease-in-out cursor-pointer hover:scale-[1.03] hover:shadow-2xl">
+                <!-- Using a placeholder for the default mosaic image, since the original file won't load -->
+                <img id="mosaic-image" src="emoji-mosaic.png" alt="Kartikay Sharma Emoji Mosaic Profile"
+                    class="w-full h-full object-cover" onerror="this.onerror=null; this.src='image error';" />
+
+                <!-- SQUINT! Text Overlay -->
+                <div id="squint-overlay"
+                    class="absolute inset-0 flex items-center justify-center transition-opacity duration-500 bg-black/50 opacity-0">
+                    <h3 id="squint-text"
+                        class="text-white text-3xl font-bold font-serif smooth-flow-font transition-transform duration-1000 ease-out">
+                        SQUINT!
+                    </h3>
+                </div>
+
+                <!-- Call to Action Frosted Glass Pane -->
+                <div id="cta-pane"
+                    class="absolute inset-x-0 bottom-0 p-4 bg-white/5 backdrop-blur-md rounded-b-xl border-t border-white/10 text-center transition-opacity duration-700 delay-500 opacity-0">
+                    <p class="text-white text-sm font-medium">
+                        Make your own below 👇
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- --- 8. Emoji Mosaic Tool Section (i'mOG Generator) --- -->
+        <section id="generator-section"
+            class="snap-section flex flex-col justify-center py-20 container mx-auto px-4 sm:px-6 lg:px-8 bg-black">
+            <div class="app-wrapper">
+                <div class="app bg-black-override">
+                    <div class="header">
+                        <div class="title text-white text-3xl font-bold mb-4 flex justify-center items-center gap-3">
+                            🧩 I'mOG
+                            <span
+                                class="badge text-white bg-gray-700/50 px-2 py-1 text-xs rounded-full border border-white/20">Generator</span>
+                        </div>
+                    </div>
+
+                    <p class="desc text-white text-center mb-6">
+                        Make yours now! (Powered by your browser, zero-upload)
+                        <br>
+                    </p>
+
+                    <div id="dropZone" class="zone">
+                        <div style="font-size: 40px; margin-bottom: 10px;">📸 ➜ 🎨+😀</div>
+                        <p><strong class="text-white">Drag & drop</strong> or <strong class="text-white">click to
+                                choose</strong></p>
+                        <p class="text-gray-400">Or press <kbd>Ctrl+V</kbd> / <kbd>Cmd+V</kbd> to paste</p>
+                        <input id="fileInput" type="file" accept="image/*"
+                            class="hidden absolute w-full h-full inset-0 opacity-0 cursor-pointer" />
+                    </div>
+
+                    <div class="btns flex justify-center gap-3 mt-6">
+                        <button id="downloadBtn" disabled class="bg-black-button">
+                            Download PNG
+                        </button>
+                        <button id="clearBtn" class="bg-black-button">
+                            Clear
+                        </button>
+                    </div>
+
+                    <div id="status" class="status text-white text-center mt-4">Drop or paste an image to start.</div>
+                    <div id="progressContainer" class="progress h-1 bg-gray-700 rounded-full overflow-hidden mt-3"
+                        style="display: none;">
+                        <div id="progressBar" class="progress-bar h-full w-0"
+                            style="background-color: var(--gradient-start);"></div>
+                    </div>
+
+                    <!-- FIX: Added 'block mx-auto' to center the generated canvas -->
+                    <canvas id="outCanvas" width="0" height="0"
+                        class="mt-5 rounded-xl shadow-lg block mx-auto"></canvas>
+
+                    <div class="hint text-gray-400 text-xs text-center mt-3">
+                        The background uses your photo’s real colors. Emojis add texture. Zoom in!
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- --- 9. Final Footer Section is removed --- -->
+    </div>
+
+    <!-- --- JAVASCRIPT LOGIC --- -->
+    <script>
+        // --- DATA & CONSTANTS ---
+        const EMOJI_PALETTE = [
+            { rgb: [0, 0, 0], emoji: '⚫' }, { rgb: [20, 20, 20], emoji: '🖤' }, { rgb: [30, 30, 30], emoji: '🌑' },
+            { rgb: [50, 50, 50], emoji: '⚙️' }, { rgb: [0, 0, 0], emoji: '💀' }, { rgb: [255, 0, 0], emoji: '❤️' },
+            { rgb: [255, 105, 180], emoji: '💖' }, { rgb: [255, 140, 0], emoji: '🧡' }, { rgb: [255, 255, 0], emoji: '💛' },
+            { rgb: [0, 128, 0], emoji: '💚' }, { rgb: [65, 105, 225], emoji: '💙' }, { rgb: [148, 0, 211], emoji: '💜' },
+            { rgb: [255, 192, 203], emoji: '🌸' }, { rgb: [255, 160, 122], emoji: '🦊' }, { rgb: [255, 220, 188], emoji: '😀' },
+            { rgb: [230, 190, 158], emoji: '😄' }, { rgb: [205, 165, 128], emoji: '😊' }, { rgb: [180, 135, 90], emoji: '😎' },
+            { rgb: [139, 100, 66], emoji: '🥳' }, { rgb: [255, 255, 255], emoji: '✨' }, { rgb: [192, 192, 192], emoji: '🔘' },
+            { rgb: [105, 105, 105], emoji: '🔧' }, { rgb: [255, 239, 213], emoji: '🧀' }, { rgb: [255, 218, 185], emoji: '🧸' },
+            { rgb: [255, 105, 97], emoji: '🔥' }, { rgb: [0, 0, 255], emoji: '💧' }, { rgb: [173, 216, 230], emoji: '☁️' },
+            { rgb: [147, 112, 219], emoji: '💐' }, { rgb: [128, 0, 128], emoji: '🌌' }, { rgb: [255, 255, 0], emoji: '⭐' },
+            { rgb: [0, 255, 0], emoji: '🐸' }, { rgb: [255, 165, 0], emoji: '🟠' }, { rgb: [255, 220, 0], emoji: '☀️' },
+            { rgb: [0, 128, 0], emoji: '🍀' }, { rgb: [34, 139, 34], emoji: '🌲' }, { rgb: [138, 43, 226], emoji: '🍇' },
+            { rgb: [244, 164, 96], emoji: '🦊' }, { rgb: [255, 140, 105], emoji: '🍑' }, { rgb: [255, 182, 193], emoji: '💗' },
+            { rgb: [210, 180, 140], emoji: '🏜️' }, { rgb: [160, 82, 45], emoji: '☕' }
+        ];
+        const EMOJI_FONT_STACK = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","EmojiOne","Twemoji",sans-serif';
+        const DEFAULT_EMOJI_SIZE = 14;
+        let sourceImage = null;
+
+        // --- DOM Elements (i'mOG) ---
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const statusEl = document.getElementById('status');
+        const progressBar = document.getElementById('progressBar');
+        const progressContainer = document.getElementById('progressContainer');
+        const outCanvas = document.getElementById('outCanvas');
+        const outCtx = outCanvas.getContext('2d');
+
+        // --- DOM Elements (Animations) ---
+        const aboutMePane = document.getElementById('about-me-pane');
+        const legoPane = document.getElementById('lego-pane-container');
+        const artPane = document.getElementById('art-pane-container');
+        const photographyPane = document.getElementById('photography-pane-container');
+
+        // --- HELPER FUNCTIONS (i'mOG) ---
+
+        function setStatus(text) {
+            statusEl.textContent = text;
+        }
+
+        /**
+         * Calculates the distance between two RGB colors (Euclidean distance).
+         * This determines which emoji color is the "closest match" for a given pixel color.
+         */
+        function colorDistance(r1, g1, b1, r2, g2, b2) {
+            return Math.sqrt(
+                Math.pow(r1 - r2, 2) +
+                Math.pow(g1 - g2, 2) +
+                Math.pow(b1 - b2, 2)
+            );
+        }
+
+        /**
+         * Finds the best matching emoji for a given RGB color.
+         */
+        function pickBestEmoji(r, g, b) {
+            let bestEmoji = '🔸';
+            let bestDist = Infinity;
+            for (const item of EMOJI_PALETTE) {
+                const d = colorDistance(r, g, b, item.rgb[0], item.rgb[1], item.rgb[2]);
+                if (d < bestDist) {
+                    bestDist = d;
+                    bestEmoji = item.emoji;
+                }
+            }
+            return bestEmoji;
+        }
+
+        function handleFiles(files) {
+            if (!files || !files.length) return;
+            const file = files[0];
+            if (!file.type.startsWith('image/')) {
+                setStatus('Please select an image file.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = new Image();
+                img.onload = () => {
+                    sourceImage = img;
+                    setStatus(`Loaded: ${img.width}×${img.height}. Starting generation...`);
+                    // Ensure the canvas is sized correctly for display
+                    outCanvas.style.display = 'block';
+                    outCanvas.style.maxWidth = '100%';
+                    renderMosaic();
+                };
+                img.onerror = () => setStatus('Failed to load image.');
+                img.src = reader.result;
+            };
+            reader.onerror = () => setStatus('Could not read file.');
+            reader.readAsDataURL(file);
+        }
+
+        function renderMosaic() {
+            if (!sourceImage) return;
+
+            const emojiSize = DEFAULT_EMOJI_SIZE;
+            const maxCols = 100;
+            const scale = Math.min(1, maxCols / sourceImage.width);
+            const cols = Math.max(1, Math.round(sourceImage.width * scale));
+            const rows = Math.max(1, Math.round(sourceImage.height * scale));
+            const totalPixels = cols * rows;
+
+            setStatus(`👨‍🎨 Hang Tight! Rendering ${cols}×${rows} tiles, total: ${totalPixels} tiles...`);
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            downloadBtn.disabled = true;
+
+            // Sample down image
+            const sampleCanvas = document.createElement('canvas');
+            sampleCanvas.width = cols;
+            sampleCanvas.height = rows;
+            const sctx = sampleCanvas.getContext('2d');
+            sctx.imageSmoothingEnabled = true;
+            sctx.imageSmoothingQuality = 'high';
+            sctx.drawImage(sourceImage, 0, 0, cols, rows);
+            const imgData = sctx.getImageData(0, 0, cols, rows).data;
+
+            // Set output canvas size
+            outCanvas.width = cols * emojiSize;
+            outCanvas.height = rows * emojiSize;
+            outCtx.clearRect(0, 0, outCanvas.width, outCanvas.height);
+
+            // Emoji settings
+            const emojiFontSize = Math.floor(emojiSize * 0.8);
+            outCtx.font = `${emojiFontSize}px ${EMOJI_FONT_STACK}`;
+            outCtx.textAlign = 'center';
+            outCtx.textBaseline = 'middle';
+            const centerOffset = emojiSize / 2;
+
+            let drawn = 0;
+            const batchSize = 500;
+
+            function drawBatch() {
+                const end = Math.min(drawn + batchSize, totalPixels);
+                for (; drawn < end; drawn++) {
+                    const x = drawn % cols;
+                    const y = Math.floor(drawn / cols);
+                    const idx = (y * cols + x) * 4;
+                    const r = imgData[idx];
+                    const g = imgData[idx + 1];
+                    const b = imgData[idx + 2];
+
+                    // Fill with exact color
+                    outCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                    outCtx.fillRect(x * emojiSize, y * emojiSize, emojiSize, emojiSize);
+
+                    // Overlay emoji
+                    const emoji = pickBestEmoji(r, g, b);
+                    outCtx.globalAlpha = 0.65;
+                    outCtx.fillText(emoji, x * emojiSize + centerOffset, y * emojiSize + centerOffset);
+                    outCtx.globalAlpha = 1.0;
+                }
+
+                progressBar.style.width = `${(drawn / totalPixels) * 100}%`;
+
+                if (drawn < totalPixels) {
+                    requestAnimationFrame(drawBatch);
+                } else {
+                    progressContainer.style.display = 'none';
+                    downloadBtn.disabled = false;
+                    setStatus(`✅ Done: ${cols}×${rows} tiles (${outCanvas.width}×${outCanvas.height}px)`);
+                    outCanvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            requestAnimationFrame(drawBatch);
+        }
+
+        function downloadPNG() {
+            if (!outCanvas.width || !outCanvas.height) return;
+
+            // 1. Create a temporary canvas context to draw the watermark
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = outCanvas.width;
+            tempCanvas.height = outCanvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+
+            // 2. Draw the original content onto the temporary canvas
+            tempCtx.drawImage(outCanvas, 0, 0);
+
+            // 3. Add the subtle watermark
+            const watermarkText = '~K';
+            tempCtx.font = '12px Arial, sans-serif';
+            tempCtx.fillStyle = 'rgba(169, 169, 169, 0.7)';
+            tempCtx.textAlign = 'right';
+            tempCtx.textBaseline = 'bottom';
+            const padding = 5;
+            tempCtx.fillText(watermarkText, tempCanvas.width - padding, tempCanvas.height - padding);
+
+            // 4. Trigger download from the watermarked canvas
+            const link = document.createElement('a');
+            link.download = 'emoji-mosaic-kartikay.png';
+            link.href = tempCanvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function clearAll() {
+            sourceImage = null;
+            outCanvas.width = 0;
+            outCanvas.height = 0;
+            outCanvas.style.display = 'none'; // Hide the canvas when cleared
+            downloadBtn.disabled = true;
+            progressContainer.style.display = 'none';
+            setStatus('Cleared. Drop or paste a new image.');
+        }
+
+        // --- GENERAL LOGIC ---
+
+        function toggleCard(element) {
+            const cardInner = element.closest('.flashcard-inner');
+            // Toggle the 'is-flipped' class to manage the 3D rotation
+            cardInner.classList.toggle('is-flipped');
+        }
+
+        function setupAnimationsAndObservers() {
+            // 1. Creative Page Pane Visibility (Disappear on scroll)
+            const paneObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    // Handle creative panes (LEGO, Art, Photo)
+                    const container = entry.target.querySelector('.creative-pane-container');
+                    if (container) {
+                        if (entry.isIntersecting) {
+                            container.classList.add('is-visible');
+                        } else {
+                            container.classList.remove('is-visible');
+                        }
+                    }
+
+                    // Specific handler for About Me pane (opacity transition only)
+                    if (entry.target.id === 'about-me-section') {
+                        if (entry.isIntersecting) {
+                            aboutMePane.classList.remove('opacity-0');
+                        } else {
+                            aboutMePane.classList.add('opacity-0');
+                        }
+                    }
+                });
+            }, {
+                threshold: 0.5 // Pane stays visible as long as 50% of the section is visible
+            });
+
+            document.querySelectorAll('.snap-section').forEach(section => {
+                paneObserver.observe(section);
+            });
+
+
+            // 2. Toolkit Card Entrance Animation
+            const cardObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.remove('opacity-0', 'translate-y-10');
+                        cardObserver.unobserve(entry.target);
+                    }
+                });
+            }, { rootMargin: '0px 0px -100px 0px' });
+
+            document.querySelectorAll('.flashcard').forEach((card, index) => {
+                // Apply staggered delay for better visual effect
+                card.style.transitionDelay = `${index * 0.1}s`;
+                cardObserver.observe(card);
+            });
+
+
+            // 3. Mosaic Reveal Animation
+            const mosaicObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateMosaicReveal();
+                        mosaicObserver.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            mosaicObserver.observe(document.getElementById('mosaic-reveal-section'));
+        }
+
+        function animateMosaicReveal() {
+            const squintOverlay = document.getElementById('squint-overlay');
+            const ctaPane = document.getElementById('cta-pane');
+            const mosaicCard = document.getElementById('mosaic-card');
+
+            // Reset state if already run
+            squintOverlay.classList.add('opacity-0');
+            ctaPane.classList.add('opacity-0');
+            mosaicCard.style.transform = 'none';
+
+            // 1. Show SQUINT! text
+            setTimeout(() => {
+                squintOverlay.classList.remove('opacity-0');
+            }, 100);
+
+
+            // 2. Hide SQUINT! after 4s and apply handheld effect
+            setTimeout(() => {
+                squintOverlay.classList.add('opacity-0');
+                // Added rotation/translation for a brief 'handheld' look
+                mosaicCard.style.transform = 'translateX(0.5rem) translateY(0.5rem) rotate(-1deg)';
+            }, 4000);
+
+            // 3. Show CTA after movement stabilizes
+            setTimeout(() => {
+                ctaPane.classList.remove('opacity-0');
+                mosaicCard.style.transform = 'none'; // Revert handheld effect slightly for stability
+            }, 5000);
+        }
+
+        // --- EVENT LISTENERS (i'mOG) ---
+
+        function setupGeneratorListeners() {
+            dropZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+            // Drag/Drop handling
+            ['dragenter', 'dragover'].forEach(ev =>
+                dropZone.addEventListener(ev, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropZone.classList.add('dragover');
+                })
+            );
+            ['dragleave', 'drop'].forEach(ev =>
+                dropZone.addEventListener(ev, e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropZone.classList.remove('dragover');
+                    if (ev === 'drop') handleFiles(e.dataTransfer.files);
+                })
+            );
+
+            // Paste handling
+            document.addEventListener('paste', e => {
+                // Check if the generator section is visible to prevent accidental pastes elsewhere
+                const generatorSection = document.getElementById('generator-section');
+                const rect = generatorSection.getBoundingClientRect();
+                const isInView = rect.top < window.innerHeight && rect.bottom >= 0;
+
+                if (!isInView) return; // Only process paste if section is roughly in view
+
+                const items = (e.clipboardData || window.clipboardData)?.items || [];
+                for (const item of items) {
+                    if (item.kind === 'file' && item.type.startsWith('image/')) {
+                        const file = item.getAsFile();
+                        handleFiles([file]);
+                        break;
+                    }
+                }
+            });
+
+            downloadBtn.addEventListener('click', downloadPNG);
+            clearBtn.addEventListener('click', clearAll);
+            outCanvas.style.display = 'none'; // Initialize canvas as hidden
+        }
+
+
+        // Initialize the app when the window is fully loaded
+        window.onload = function () {
+            setupAnimationsAndObservers();
+            setupGeneratorListeners();
+        }
+    </script>
+
+</body>
+
+</html>
